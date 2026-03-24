@@ -148,8 +148,8 @@ class albumsController extends Controller implements ControllerInterface
       if (!albumsModel::delete_by_id($id)) {
         throw new Exception('Error al borrar el álbum.');
       }
-      Flasher::success('Album borrado');
-      Redirect::back();
+    Flasher::success('Album borrado');
+    Redirect::back();
     } catch (Exception $e) {
       Flasher::error($e->getMessage());
       Redirect::back();
