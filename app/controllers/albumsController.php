@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plantilla general de controladores
  * @version 2.0.0
@@ -26,9 +27,11 @@ class albumsController extends Controller implements ControllerInterface
 
   function index()
   {
+    $albums = albumsModel::all();
     $this->setTitle('Listado de Albums');
     $this->addToData('msg', 'Bienvenido al controlador de "albums", se ha creado con éxito si ves este mensaje.');
     $this->setEngine('bee');
+    $this->addToData('albums', $albums);
     $this->setView('albums'); // por defecto es index
     $this->render();
   }
@@ -52,47 +55,44 @@ class albumsController extends Controller implements ControllerInterface
   function post_agregar()
   {
     try {
-      if (!check_posted_data(['tittle', 'artist', 'genre', 'release_date'], $_POST)) {
+      if (!check_posted_data(['title', 'artist', 'genre', 'release_date'], $_POST)) {
         throw new Exception('Por favor, completar el formulario.');
       }
 
-      if (!Csrf::validate($_POST['Csrf'])) {
+      if (!Csrf::validate($_POST['csrf'])) {
         throw new Exception(get_bee_message(0));
       }
 
       array_map('sanitize_input', $_POST);
-      $tittle = $_POST['tittle'];
+
+      $title = $_POST['title'];
       $artist = $_POST['artist'];
       $genre = $_POST['genre'];
       $release_date = $_POST['release_date'];
-      $errorMessage = '';
-      $errors = 0;
 
-      $sql = 'SELECT * FROM albums WHERE title = :tittle OR artist = :artist OR slug = :slug';
-      if (albumsModel::query($sql, ['tittle' => $tittle, 'artist' => $artist, 'slug' => $artist])) {
+      $sql = 'SELECT * FROM albums WHERE title = :title OR artist = :artist';
+      if (albumsModel::query($sql, ['title' => $title, 'artist' => $artist])) {
         throw new Exception('Ya existe un album registrado con el mismo titulo o artista');
       }
 
-      if (strlen($tittle) > 120) {
-        $errorMessage .= 'El nombre debe ser menor a 120 caracteres.' . PHP_EOL;
-        $errors++;
+      if (strlen($title) < 3) {
+        throw new Exception('El titulo debe tener mínimo 3 caracteres');
       }
 
-      $albums =
+      $album =
         [
-          'tittle' => $tittle,
+          'title' => $title,
           'artist' => $artist,
           'genre' => $genre,
           'release_date' => $release_date,
+          'created_at' => now()
         ];
 
-      if (!$id = albumsModel::insertOne($albums)) {
+      if (!$id = albumsModel::insertOne($album)) {
         throw new Exception('Hubo un error, intenta nuevamente.');
       }
 
-      $albums = albumsModel::by_id($id);
-
-      Flasher::success(sprintf('Nuevo album <b>%s</b> agregado con éxito', $albums['tittle']));
+      Flasher::success(sprintf('Nuevo album <b>%s</b> agregado con éxito', $album['title']));
       Redirect::back();
     } catch (Exception $e) {
       Flasher::error($e->getMessage());
@@ -100,21 +100,59 @@ class albumsController extends Controller implements ControllerInterface
     }
   }
 
-function editar($id)
-{
-  $this->setTitle('Reemplazar título');
-  $this->setEngine('bee');
-  $this->setView('editar'); // por defecto es index
-  $this->render();
-}
+  function editar($id)
+  {
+    $this->setTitle('Reemplazar título');
+    $this->setEngine('bee');
+    $this->setView('editar'); // por defecto es index
+    $this->render();
+  }
 
-function post_editar()
-{
-  // Proceso de actualizado
-}
+  function post_editar($id)
+  {
 
-function borrar($id)
-{
-  // Proceso de borrado
-}
+    try {
+      if (!check_posted_data(['id', 'title', 'artist', 'genre', 'release_date'], $_POST)) {
+        throw new Exception('Datos incompletos');
+      }
+      if (!Csrf::validate($_POST['csrf'])) {
+        throw new Exception(get_bee_message(0));
+      }
+      $id = $_POST['id'];
+
+      $album = [
+        'title' => $_POST['title'],
+        'artist' => $_POST['artist'],
+        'genre' => $_POST['genre'],
+        'release_date' => $_POST['release_date'],
+        'updated_at' => now()
+      ];
+
+      if (!albumsModel::update_by_id($id, $album)) {
+        throw new Exception('No se pudo actualizar');
+      }
+      Flasher::success('Álbum actualizado');
+      Redirect::to('albums');
+    } catch (Exception $e) {
+      Flasher::error($e->getMessage());
+      Redirect::back();
+    }
+  }
+
+  function borrar($id)
+  {
+    try {
+      if (!$album = albumsModel::by_id($id)) {
+        throw new Exception('No existe ese album.');
+      }
+      if (!albumsModel::delete_by_id($id)) {
+        throw new Exception('Error al borrar el álbum.');
+      }
+      Flasher::success('Album borrado');
+      Redirect::back();
+    } catch (Exception $e) {
+      Flasher::error($e->getMessage());
+      Redirect::back();
+    }
+  }
 }

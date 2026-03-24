@@ -12,8 +12,8 @@
                     <?php echo insert_inputs(); ?>
 
                     <div class="mb-3">
-                        <label for="tittle" class="form-label">Titulo: <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="tittle" name="tittle" required>
+                        <label for="title" class="form-label">Titulo: <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required>
                     </div>
 
                     <div class="mb-3">
@@ -54,8 +54,41 @@
                                 <th class="text-center">Artista:</th>
                                 <th class="text-center">Género:</th>
                                 <th class="text-center">Fecha de publicación:</th>
+                                <th class="text-center">Creado:</th>
+                                <th class="text-center">Actualizado:</th>
                             </tr>
                         </thead>
+                        <tbody>
+                            <?php if (!empty($d->albums)): ?>
+                                <?php foreach ($d->albums as $album): ?>
+                                    <tr>
+                                        <td class="text-center"><?php echo $album->id; ?></td>
+                                        <td class="text-center"><?php echo $album->title; ?></td>
+                                        <td class="text-center"><?php echo $album->artist; ?></td>
+                                        <td class="text-center"><?php echo $album->genre; ?></td>
+                                        <td class="text-center"><?php echo $album->release_date; ?></td>
+                                        <td class="text-center"><?php echo $album->created_at; ?></td>
+                                        <td class="text-center"><?php echo $album->updated_at; ?></td>
+                                        <td class="text-center justify-content-between">
+                                            <a href="<?php echo build_url('albums/post_editar/' . $album->id); ?>"
+                                                class="btn btn-primary btn-sm">
+                                                Editar
+                                            </a>
+                                            <a href="<?php echo build_url('albums/borrar/' . $album->id); ?>"
+                                                class="btn btn-danger btn-sm mt-1 confirmar">
+                                                Borrar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td class="text-center">
+                                        No hay álbumes registrados.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
                     </table>
                 </div>
             </div>

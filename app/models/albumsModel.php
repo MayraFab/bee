@@ -12,12 +12,12 @@ class albumsModel extends Model {
   public static $t1 = 'albums';
   
   // Nombre de tablas secundarias
-  // public static $t2 = '__tabla 2__'; 
+  public static $t2 = 'album_songs'; 
   // public static $t3 = '__tabla 3__'; 
 
   // Esquema del Modelo
   public $id;
-	public $tittle;
+	public $title;
 	public $artist;
 	public $genre;
 	public $release_date;
@@ -36,7 +36,7 @@ class albumsModel extends Model {
   static function all()
   {
     // Todos los registros
-    $sql = sprintf('SELECT * FROM %s ORDER BY id DESC', self::$t1);
+    $sql = sprintf('SELECT * FROM %s ORDER BY id ASC', self::$t1);
     return ($rows = parent::query($sql)) ? $rows : [];
   }
 
